@@ -127,3 +127,20 @@ Entries are appended phase by phase, in the order the decisions were made.
 
 - **The frontend is always light-themed,** at the owner's request. The `prefers-color-scheme: dark` override was removed, and `color-scheme: light` (in CSS and a meta tag) makes the browser draw form controls light even when the phone is in dark mode. I verified this in the browser pane with dark mode emulated: background `#f4f6f5`, white cards, dark text. The README screenshot was retaken.
 - **PROJECT_GUIDE.md** is the single long-form explanation: uses, how to use it, the pipeline and request flows (Mermaid diagrams), every file, configuration, commands, troubleshooting, and a glossary. Its results table is labelled as a snapshot of metrics.json, because the README rule (numbers only rendered from metrics.json) applies to the README.
+
+## Phase 11: live Gemini test (with the owner's API key)
+
+- **Model string verified with `models.list()`:** `gemini-3.5-flash` exists for this key, so my SDK-based guess in Phase 0 was right.
+- **Bug found by the fallback:** the API returned `400 INVALID_ARGUMENT: Minimum allowed deadline is 10s`. I'd passed the 5 s budget as the SDK's HTTP timeout, which is sent to the server as a deadline. The fix: the SDK socket timeout is `GEMINI_HTTP_TIMEOUT_MS = 10000` (the API's floor, there only to kill hung sockets), and the **5 s user-facing budget is enforced by the thread-level `future.result(timeout=5)`**. Phase 6 claimed the timeout was "enforced twice at 5 s", and this entry corrects that. The endpoint never failed during this bug, because every error fell back to the template. That is the design working.
+- **Model switched to `gemini-3.5-flash-lite`,** based on a measured probe (same config, trivial prompt, 2026-09-28):
+  - `gemini-3.5-flash`: 503 "high demand" repeatedly, or longer than 5 s;
+  - `gemini-flash-latest`: 2.3 s, but it rejects `thinking_level`;
+  - `gemini-3.8-flash`: 4.5 s, and it rejects `thinking_level`;
+  - **`gemini-3.5-flash-lite`: 1.0 s with `thinking_level=MINIMAL`**;
+  - `gemini-3.1-flash-lite`: 2.9 s.
+
+  Narration is a rephrasing task that needs no reasoning, so the fastest reliable Flash-family model is the right trade-off for a 5 s budget on a demo network. It's still overridable through `GEMINI_MODEL`.
+- **Automatic function calling is disabled** (`AutomaticFunctionCallingConfig(disable=True)`). No tools are used, and this removes an SDK warning.
+- **The prompt was tightened, v1 → v2:** rupees with Indian grouping and no decimals, "up/down X%" instead of signed numbers, "standard deviations above normal" instead of "z-score", and no JSON field names. v1 output was accurate but read like a data dump ("61234.5", "z_score of 4.6"). Bumping `PROMPT_VERSION` invalidates cached v1 narrations automatically.
+- **End-to-end result through `/advice`** with the page's real payload: HTTP 200, `source=llm`, 4.1 s, 0 guard rejections. It **hedged on the uncertain categorisation** ("looks like Transfers, but the categoriser isn't confident about it") and used the true anomaly count. The identical repeat request was served from cache in 0.01 s. Cost so far: about ₹0.10 (estimate, from `usage_metadata` tokens).
+- **Latency note:** a full-page payload (about 2k input tokens) took about 4 s, close to the 5 s budget. When it overruns, the fallback answers. On demo day, press Advice once before presenting so the answer is cached.

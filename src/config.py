@@ -69,9 +69,10 @@ INTERVAL_QUANTILES = (0.10, 0.90)
 # ---- Gemini ---------------------------------------------------------------
 # Default model: newest GA Flash name registered in the installed google-genai 2.25.0
 # (google/genai/_local_tokenizer_loader.py). Override with GEMINI_MODEL in .env.
-GEMINI_MODEL_DEFAULT = "gemini-3.5-flash"
-GEMINI_TIMEOUT_S = 5.0
-PROMPT_VERSION = "v1"
+GEMINI_MODEL_DEFAULT = "gemini-3.5-flash-lite"
+GEMINI_TIMEOUT_S = 5.0            # user-facing budget, enforced with a thread timeout
+GEMINI_HTTP_TIMEOUT_MS = 10_000   # SDK socket timeout; the Gemini API rejects deadlines < 10 s
+PROMPT_VERSION = "v2"  # bump on any prompt change: invalidates cached narrations
 # Cost constants — VERIFY BEFORE VIVA against https://ai.google.dev/pricing.
 # They only feed an "estimated cost" display, never a model decision.
 FLASH_USD_PER_1M_IN = 0.30

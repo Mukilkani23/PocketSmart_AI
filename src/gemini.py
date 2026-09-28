@@ -12,7 +12,7 @@ Defences, in order:
    rejected and the deterministic template is used instead.
 3. Cache: identical payloads (sha256 of canonical JSON + model + prompt version)
    are served from cache/advice_cache.json, with no network call.
-4. 5-second hard timeout (SDK HTTP timeout + a thread-level timeout) and a
+4. 5-second hard timeout (thread-level; the SDK socket timeout sits at the API's 10 s minimum) and a
    catch-all: ANY failure returns the deterministic template. narrate() never raises.
 
 CLI:  python -m src.gemini --list-models      (needs GEMINI_API_KEY; verifies the model string)
@@ -47,6 +47,9 @@ STRICT RULES:
   categoriser isn't confident"). Never present an uncertain categorisation as fact.
 - If a forecast includes a holdout MAE, mention that the forecast is typically off by about that much.
 - No financial product recommendations, no investment advice. Practical, neutral, non-judgemental tone.
+- Write money as rupees with Indian digit grouping and no decimals (e.g. ₹61,234, ₹1,11,062). Write a negative
+  change as "down 4.2%" and a positive one as "up 4.2%". Say "standard deviations above normal", not "z-score".
+- Never mention JSON field names (like z_score, holdout_mae, mom_delta_pct) or say "JSON".
 - Output plain text only: no markdown, no lists, no headings."""
 
 _NUM = re.compile(r"-?\d[\d,]*(?:\.\d+)?")
@@ -178,9 +181,13 @@ def _call_gemini(payload: dict) -> tuple[str, int | None, int | None]:
     from google import genai
     from google.genai import types
 
+    # The API rejects server deadlines under 10 s ("Minimum allowed deadline is 10s"), so the SDK timeout
+    # is set to that floor only to kill hung sockets. The 5 s user-facing budget is enforced by the
+    # thread-level future.result(timeout=...) in narrate().
     client = genai.Client(api_key=os.environ["GEMINI_API_KEY"],
-                          http_options=types.HttpOptions(timeout=int(config.GEMINI_TIMEOUT_S * 1000)))
-    cfg = dict(system_instruction=SYSTEM_PROMPT, temperature=0.0, max_output_tokens=400)
+                          http_options=types.HttpOptions(timeout=config.GEMINI_HTTP_TIMEOUT_MS))
+    cfg = dict(system_instruction=SYSTEM_PROMPT, temperature=0.0, max_output_tokens=400,
+               automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True))  # no tools used
     level = os.getenv("GEMINI_THINKING_LEVEL", "MINIMAL")  # keep latency inside the 5 s budget
     if level:
         cfg["thinking_config"] = types.ThinkingConfig(thinking_level=level)

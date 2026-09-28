@@ -21,7 +21,7 @@ gcloud services enable run.googleapis.com cloudbuild.googleapis.com artifactregi
 ```powershell
 gcloud run deploy pocketsmart --source . --region asia-south1 --allow-unauthenticated `
   --memory 1Gi --cpu 1 --timeout 60 --max-instances 3 `
-  --set-env-vars "GEMINI_MODEL=gemini-3.5-flash"
+  --set-env-vars "GEMINI_MODEL=gemini-3.5-flash-lite"
 ```
 - The first time, it may ask to create an Artifact Registry repository. Answer **Y**.
 - In the build log, look for **`BUILD MODEL MATCHES COMMITTED METRICS`**. If the rebuilt model doesn't reproduce `results/metrics.json`, the build fails on purpose.

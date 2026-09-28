@@ -205,7 +205,7 @@ flowchart TD
     C -- yes --> R1[return text, source = cache]
     C -- no --> D{GEMINI_FORCE_FAIL=1<br/>or no API key?}
     D -- yes --> F[deterministic template]
-    D -- no --> E[call Gemini, temperature 0,<br/>5 s timeout ×2]
+    D -- no --> E[call Gemini, temperature 0,<br/>5 s thread timeout]
     E -- timeout / error --> F
     E -- reply --> G{number-guard:<br/>every number in reply<br/>exists in payload?}
     G -- no --> F
@@ -293,11 +293,11 @@ flowchart TD
 1. **System prompt:** strict rules; temperature 0.
 2. **Number-guard:** every number in the reply must match a number in the input, allowing rounding, absolute values and fraction → percent. Otherwise the reply is **rejected**.
 3. **Cache:** the key is `sha256(model | prompt version | canonical JSON)`. The same numbers give an instant answer at zero cost.
-4. **Timeout:** 5 seconds, enforced twice (the SDK HTTP timeout plus a thread timeout).
+4. **Timeout:** 5 seconds, enforced by a thread timeout. The SDK socket timeout sits at 10 s, because the Gemini API rejects anything shorter.
 5. **Fallback template:** built only from the input JSON, with Indian digit grouping (₹4,04,791). `/advice` **never** returns a server error.
 6. **Usage stats:** in `/health` → `llm`: calls, cache hits and misses, fallbacks, guard rejections, tokens, and estimated INR cost.
 
-Model: `gemini-3.5-flash` by default, overridable with `GEMINI_MODEL` in `.env`. Check the name with `python -m src.gemini --list-models`.
+Model: `gemini-3.5-flash-lite` by default (chosen by a live latency test; see DECISIONS.md Phase 11), overridable with `GEMINI_MODEL` in `.env`. Check the name with `python -m src.gemini --list-models`.
 
 ---
 
@@ -399,9 +399,9 @@ PocketAI/
 | Variable | Default | Purpose |
 |---|---|---|
 | `GEMINI_API_KEY` | (none) | Gemini key. Without it, `/advice` uses the offline template |
-| `GEMINI_MODEL` | `gemini-3.5-flash` | which Gemini model narrates |
+| `GEMINI_MODEL` | `gemini-3.5-flash-lite` | which Gemini model narrates |
 | `GEMINI_FORCE_FAIL` | `0` | set to `1` to simulate an LLM outage (demo and testing) |
-| `GEMINI_THINKING_LEVEL` | `MINIMAL` | keeps latency inside the 5 s budget; set it empty for models that don't support it |
+| `GEMINI_THINKING_LEVEL` | `MINIMAL` | keeps latency inside the 5 s budget; set it empty for models that reject it (e.g. `gemini-flash-latest`, `gemini-3.8-flash`) |
 | `POCKETSMART_CACHE_DIR` | `cache/` (`/tmp/...` in the container) | where the LLM response cache lives |
 
 ### Tunable constants (`src/config.py`)
@@ -417,7 +417,7 @@ PocketAI/
 | `ANOMALY_Z_SWEEP` | 2.0 … 4.0 | thresholds evaluated |
 | `FORECAST_HOLDOUT_WEEKS` | 8 | forecast test period |
 | `FORECAST_CALIBRATION_WEEKS` | 16 | interval calibration window |
-| `GEMINI_TIMEOUT_S` | 5.0 | hard LLM timeout |
+| `GEMINI_TIMEOUT_S` / `GEMINI_HTTP_TIMEOUT_MS` | 5.0 / 10000 | 5 s user-facing budget (thread timeout) / SDK socket timeout (the API rejects deadlines under 10 s) |
 | `FLASH_USD_PER_1M_IN/OUT`, `USD_TO_INR` | 0.30 / 2.50 / 88 | cost estimate only. **Verify against current pricing** |
 
 The ambiguity knobs of the generator (`PERSON_SHARE`, `TRUNCATE_P`, `ANOMALY_RATE`) are at the top of `data/generate.py`. Change them only if the leakage gate fires, and log every change in DECISIONS.md.
