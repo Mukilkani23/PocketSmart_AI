@@ -19,6 +19,8 @@ REAL_STRINGS_RAW = DATA_DIR / "real_strings_raw.txt"
 REAL_VALIDATION_CSV = DATA_DIR / "real_validation.csv"
 CLASSIFIER_PATH = MODELS_DIR / "classifier.joblib"
 FORECAST_PATH = MODELS_DIR / "forecast.joblib"
+ANOMALY_PATH = MODELS_DIR / "anomaly.joblib"
+LABEL_AGREEMENT_PATH = RESULTS_DIR / "label_agreement.json"
 BUILD_VERIFICATION_PATH = MODELS_DIR / "build_verification.json"
 METRICS_PATH = RESULTS_DIR / "metrics.json"
 

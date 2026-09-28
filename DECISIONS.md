@@ -68,3 +68,14 @@ Entries are appended phase by phase, in the order the decisions were made.
 - **MAPE is computed only on weeks with non-zero actuals,** because MAPE is undefined when actual = 0. The count of weeks used is stored per category.
 - **Serving: each category serves its holdout-MAE winner.** Where the winner is linear, it's refit on all 104 weeks for the live prediction, and the interval quantiles are reused from calibration.
 - **Result.** Linear regression has the lowest *mean* MAE, but **category_mean is the per-category winner in 5 of 10 categories**. For most categories, weekly spend is close to i.i.d. noise around a mean, so a constant beats models that chase last week's noise. Miscellaneous is flagged NOT ROBUST: its winner beat the reference in only 4 of 8 weeks.
+
+## Phase 5: evaluate.py, the single source of truth
+
+- **`python -m src.evaluate --report` rebuilds everything:** the models, `results/metrics.json`, 4 PNGs, `error_analysis.md` and `real_errors.md`, and the README tables. README numbers live only between `<!-- METRICS:<NAME>:START/END -->` markers and are rendered from metrics.json. Even configuration constants (window lengths, holdout size) are copied into a `config` section of metrics.json, so every figure is traceable.
+- **The "What didn't work" findings are also generated from metrics.json.** Each bullet appears only if its condition holds in the data (e.g. the log-z bullet appears only while raw-z actually wins), so the prose can't go stale after a re-run.
+- **Determinism check:** two consecutive runs gave byte-identical metrics.json and README. Timings are printed but never stored, because a timestamp would break the diff.
+- **Runtime is about 65 s, well under the 3-minute cap,** so the bootstrap stays at 1,000 resamples.
+- **The plain `python -m src.evaluate` (no `--report`) only builds `models/*.joblib`.** That's what the Dockerfile runs, and it never overwrites the committed metrics.json.
+- **`src/verify_build.py` recomputes the test accuracy and macro-F1 of the rebuilt model and compares them with the committed metrics.json, with tolerance 0.005.** On the build machine both deltas were exactly 0.0000. The tolerance exists only to absorb Windows vs Linux float differences in lbfgs. Any real drift (a changed generator, code or library) is far larger.
+- **Label source is tracked end to end.** `ingest_labels` records whether the labelled strings were `real` or the `synthetic_fallback`, and the README prints a loud warning if a non-real set is ever reported. This makes it impossible to accidentally present synthetic strings as real validation.
+- **`.gitattributes` forces LF line endings,** so Windows commits build cleanly in the Linux container.

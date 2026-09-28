@@ -17,6 +17,7 @@ trained on it. The detector has no fitted parameters except the threshold.
 """
 from __future__ import annotations
 
+import joblib
 import numpy as np
 import pandas as pd
 from sklearn.metrics import average_precision_score, precision_recall_fscore_support
@@ -123,9 +124,20 @@ def print_report(m: dict):
         print(f"  {c:<20} flagged={r['flagged']:>4}  TP={r['tp']:>3}  FP={r['fp']:>4}  precision={r['precision']}  recall={r['recall']}")
 
 
+def save(scored: pd.DataFrame, m: dict):
+    """Persist what the API needs: per-txn scores + the served variant/threshold."""
+    cols = ["txn_id", "date", "merchant_raw", "category", "amount", "z_log", "z_raw",
+            "typical_amount", "mu_raw", "n_hist"]
+    config.MODELS_DIR.mkdir(exist_ok=True)
+    joblib.dump({"scored": scored[cols].copy(), "served": m["served"]}, config.ANOMALY_PATH)
+
+
 def main():
     df = pd.read_csv(config.TRANSACTIONS_CSV)
-    print_report(evaluate(score(df)))
+    scored = score(df)
+    m = evaluate(scored)
+    print_report(m)
+    save(scored, m)
 
 
 if __name__ == "__main__":

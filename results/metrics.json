@@ -1,0 +1,1078 @@
+{
+  "config": {
+    "test_fraction": 0.2,
+    "accuracy_band": [
+      0.78,
+      0.92
+    ],
+    "tfidf_char_ngram_range": [
+      2,
+      4
+    ],
+    "anomaly_window_days": 28,
+    "anomaly_z_sweep": [
+      2.0,
+      2.5,
+      3.0,
+      3.5,
+      4.0
+    ],
+    "forecast_holdout_weeks": 8,
+    "forecast_calibration_weeks": 16,
+    "forecast_lags": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "seasonal_lag_weeks": 4,
+    "interval_quantiles": [
+      0.1,
+      0.9
+    ],
+    "mcnemar_alpha": 0.05,
+    "abstain_target_accuracy": 0.95,
+    "library_versions": {
+      "python": "3.11.9",
+      "numpy": "2.4.6",
+      "pandas": "3.0.6",
+      "scikit-learn": "1.7.2",
+      "scipy": "1.17.1"
+    }
+  },
+  "data": {
+    "synthetic": true,
+    "generator": "data/generate.py",
+    "seed": 42,
+    "n_rows": 9508,
+    "date_range": [
+      "2024-09-01",
+      "2026-08-31"
+    ],
+    "n_months": 24,
+    "n_categories": 10,
+    "category_counts": {
+      "Food & Dining": 2724,
+      "Groceries": 1444,
+      "Transport": 1887,
+      "Shopping": 868,
+      "Bills & Utilities": 377,
+      "Entertainment": 476,
+      "Health": 322,
+      "Education": 165,
+      "Transfers": 755,
+      "Miscellaneous": 490
+    },
+    "direction_counts": {
+      "debit": 9484,
+      "credit": 24
+    },
+    "n_anomalies": 190,
+    "anomaly_rate": 0.02
+  },
+  "classifier": {
+    "split": {
+      "type": "time-based",
+      "cutoff_date": "2026-04-05",
+      "n_train": 7597,
+      "n_test": 1911,
+      "train_range": [
+        "2024-09-01",
+        "2026-04-04"
+      ],
+      "test_range": [
+        "2026-04-05",
+        "2026-08-31"
+      ]
+    },
+    "models": {
+      "LogisticRegression": {
+        "accuracy": 0.7928,
+        "macro_f1": 0.7458,
+        "accuracy_ci95": [
+          0.7745,
+          0.8111
+        ],
+        "macro_f1_ci95": [
+          0.7212,
+          0.7676
+        ]
+      },
+      "RandomForest": {
+        "accuracy": 0.7776,
+        "macro_f1": 0.7604,
+        "accuracy_ci95": [
+          0.7593,
+          0.7964
+        ],
+        "macro_f1_ci95": [
+          0.7349,
+          0.7837
+        ]
+      }
+    },
+    "mcnemar": {
+      "table": {
+        "both_correct": 1444,
+        "a_correct_b_wrong": 71,
+        "a_wrong_b_correct": 42,
+        "both_wrong": 354
+      },
+      "discordant": 113,
+      "p_value": 0.00814969137377117,
+      "model_a": "LogisticRegression",
+      "model_b": "RandomForest",
+      "shipped": "LogisticRegression",
+      "reason": "McNemar p=0.00815 < 0.05: significant difference in error rate in favour of LogisticRegression (71 vs 42 discordant wins); higher macro-F1 was RandomForest."
+    },
+    "shipped_model": "LogisticRegression",
+    "accuracy": 0.7928,
+    "macro_f1": 0.7458,
+    "gate": "OK",
+    "per_class": {
+      "Food & Dining": {
+        "precision": 0.9392,
+        "recall": 0.8582,
+        "f1-score": 0.8969,
+        "support": 522.0
+      },
+      "Groceries": {
+        "precision": 0.9364,
+        "recall": 0.5956,
+        "f1-score": 0.7281,
+        "support": 272.0
+      },
+      "Transport": {
+        "precision": 0.9455,
+        "recall": 0.8062,
+        "f1-score": 0.8703,
+        "support": 387.0
+      },
+      "Shopping": {
+        "precision": 0.7075,
+        "recall": 0.8523,
+        "f1-score": 0.7732,
+        "support": 176.0
+      },
+      "Bills & Utilities": {
+        "precision": 0.5673,
+        "recall": 0.7024,
+        "f1-score": 0.6277,
+        "support": 84.0
+      },
+      "Entertainment": {
+        "precision": 0.6897,
+        "recall": 0.8247,
+        "f1-score": 0.7512,
+        "support": 97.0
+      },
+      "Health": {
+        "precision": 0.7922,
+        "recall": 0.8356,
+        "f1-score": 0.8133,
+        "support": 73.0
+      },
+      "Education": {
+        "precision": 0.575,
+        "recall": 0.7667,
+        "f1-score": 0.6571,
+        "support": 30.0
+      },
+      "Transfers": {
+        "precision": 0.5606,
+        "recall": 0.881,
+        "f1-score": 0.6852,
+        "support": 168.0
+      },
+      "Miscellaneous": {
+        "precision": 0.6102,
+        "recall": 0.7059,
+        "f1-score": 0.6545,
+        "support": 102.0
+      }
+    },
+    "confusion_matrix": {
+      "labels": [
+        "Food & Dining",
+        "Groceries",
+        "Transport",
+        "Shopping",
+        "Bills & Utilities",
+        "Entertainment",
+        "Health",
+        "Education",
+        "Transfers",
+        "Miscellaneous"
+      ],
+      "matrix": [
+        [
+          448,
+          2,
+          5,
+          6,
+          9,
+          7,
+          7,
+          3,
+          24,
+          11
+        ],
+        [
+          28,
+          162,
+          4,
+          29,
+          6,
+          4,
+          4,
+          5,
+          23,
+          7
+        ],
+        [
+          0,
+          1,
+          312,
+          6,
+          12,
+          4,
+          2,
+          3,
+          36,
+          11
+        ],
+        [
+          0,
+          5,
+          3,
+          150,
+          5,
+          0,
+          2,
+          1,
+          6,
+          4
+        ],
+        [
+          0,
+          1,
+          2,
+          8,
+          59,
+          5,
+          0,
+          0,
+          6,
+          3
+        ],
+        [
+          0,
+          0,
+          2,
+          3,
+          4,
+          80,
+          1,
+          1,
+          4,
+          2
+        ],
+        [
+          0,
+          2,
+          0,
+          3,
+          1,
+          0,
+          61,
+          1,
+          5,
+          0
+        ],
+        [
+          0,
+          0,
+          1,
+          4,
+          0,
+          0,
+          0,
+          23,
+          2,
+          0
+        ],
+        [
+          1,
+          0,
+          1,
+          0,
+          4,
+          6,
+          0,
+          0,
+          148,
+          8
+        ],
+        [
+          0,
+          0,
+          0,
+          3,
+          4,
+          10,
+          0,
+          3,
+          10,
+          72
+        ]
+      ]
+    },
+    "calibration": {
+      "ece": 0.1596,
+      "brier": 0.1316,
+      "curve": [
+        {
+          "bin_lo": 0.1,
+          "bin_hi": 0.2,
+          "count": 37,
+          "mean_confidence": 0.1773,
+          "accuracy": 0.0811
+        },
+        {
+          "bin_lo": 0.2,
+          "bin_hi": 0.3,
+          "count": 139,
+          "mean_confidence": 0.2497,
+          "accuracy": 0.223
+        },
+        {
+          "bin_lo": 0.3,
+          "bin_hi": 0.4,
+          "count": 160,
+          "mean_confidence": 0.3492,
+          "accuracy": 0.45
+        },
+        {
+          "bin_lo": 0.4,
+          "bin_hi": 0.5,
+          "count": 168,
+          "mean_confidence": 0.4488,
+          "accuracy": 0.6429
+        },
+        {
+          "bin_lo": 0.5,
+          "bin_hi": 0.6,
+          "count": 187,
+          "mean_confidence": 0.552,
+          "accuracy": 0.7701
+        },
+        {
+          "bin_lo": 0.6,
+          "bin_hi": 0.7,
+          "count": 296,
+          "mean_confidence": 0.6531,
+          "accuracy": 0.8818
+        },
+        {
+          "bin_lo": 0.7,
+          "bin_hi": 0.8,
+          "count": 415,
+          "mean_confidence": 0.7511,
+          "accuracy": 0.9373
+        },
+        {
+          "bin_lo": 0.8,
+          "bin_hi": 0.9,
+          "count": 365,
+          "mean_confidence": 0.8469,
+          "accuracy": 0.9945
+        },
+        {
+          "bin_lo": 0.9,
+          "bin_hi": 1.0,
+          "count": 144,
+          "mean_confidence": 0.9344,
+          "accuracy": 1.0
+        }
+      ]
+    },
+    "abstain_sweep": [
+      {
+        "threshold": 0.3,
+        "coverage": 0.9079,
+        "accuracy_on_covered": 0.8536
+      },
+      {
+        "threshold": 0.35,
+        "coverage": 0.8629,
+        "accuracy_on_covered": 0.8775
+      },
+      {
+        "threshold": 0.4,
+        "coverage": 0.8242,
+        "accuracy_on_covered": 0.8946
+      },
+      {
+        "threshold": 0.45,
+        "coverage": 0.7797,
+        "accuracy_on_covered": 0.9107
+      },
+      {
+        "threshold": 0.5,
+        "coverage": 0.7363,
+        "accuracy_on_covered": 0.9247
+      },
+      {
+        "threshold": 0.55,
+        "coverage": 0.6871,
+        "accuracy_on_covered": 0.9337
+      },
+      {
+        "threshold": 0.6,
+        "coverage": 0.6384,
+        "accuracy_on_covered": 0.9484
+      },
+      {
+        "threshold": 0.65,
+        "coverage": 0.5683,
+        "accuracy_on_covered": 0.954
+      },
+      {
+        "threshold": 0.7,
+        "coverage": 0.4835,
+        "accuracy_on_covered": 0.9697
+      },
+      {
+        "threshold": 0.75,
+        "coverage": 0.3752,
+        "accuracy_on_covered": 0.9805
+      },
+      {
+        "threshold": 0.8,
+        "coverage": 0.2664,
+        "accuracy_on_covered": 0.9961
+      },
+      {
+        "threshold": 0.85,
+        "coverage": 0.1601,
+        "accuracy_on_covered": 1.0
+      },
+      {
+        "threshold": 0.9,
+        "coverage": 0.0754,
+        "accuracy_on_covered": 1.0
+      }
+    ],
+    "abstain_threshold": 0.65,
+    "abstain_rule": "lowest threshold with accuracy_on_covered >= 0.95",
+    "abstain_coverage": 0.5683,
+    "abstain_accuracy_on_covered": 0.954,
+    "bootstrap_resamples": 1000
+  },
+  "anomaly": {
+    "n_evaluated": 9084,
+    "n_true_anomalies": 184,
+    "window_days": 28,
+    "min_history": 5,
+    "variants": {
+      "log": {
+        "auc_pr": 0.3346,
+        "sweep": [
+          {
+            "z": 2.0,
+            "precision": 0.2309,
+            "recall": 0.6576,
+            "f1": 0.3418,
+            "tp": 121,
+            "fp": 403,
+            "fn": 63,
+            "tn": 8497
+          },
+          {
+            "z": 2.5,
+            "precision": 0.3913,
+            "recall": 0.4402,
+            "f1": 0.4143,
+            "tp": 81,
+            "fp": 126,
+            "fn": 103,
+            "tn": 8774
+          },
+          {
+            "z": 3.0,
+            "precision": 0.4952,
+            "recall": 0.2826,
+            "f1": 0.3599,
+            "tp": 52,
+            "fp": 53,
+            "fn": 132,
+            "tn": 8847
+          },
+          {
+            "z": 3.5,
+            "precision": 0.549,
+            "recall": 0.1522,
+            "f1": 0.2383,
+            "tp": 28,
+            "fp": 23,
+            "fn": 156,
+            "tn": 8877
+          },
+          {
+            "z": 4.0,
+            "precision": 0.5714,
+            "recall": 0.0652,
+            "f1": 0.1171,
+            "tp": 12,
+            "fp": 9,
+            "fn": 172,
+            "tn": 8891
+          }
+        ],
+        "best_f1_threshold": 2.5
+      },
+      "raw": {
+        "auc_pr": 0.3863,
+        "sweep": [
+          {
+            "z": 2.0,
+            "precision": 0.2792,
+            "recall": 0.7283,
+            "f1": 0.4036,
+            "tp": 134,
+            "fp": 346,
+            "fn": 50,
+            "tn": 8554
+          },
+          {
+            "z": 2.5,
+            "precision": 0.3361,
+            "recall": 0.6685,
+            "f1": 0.4473,
+            "tp": 123,
+            "fp": 243,
+            "fn": 61,
+            "tn": 8657
+          },
+          {
+            "z": 3.0,
+            "precision": 0.3682,
+            "recall": 0.5924,
+            "f1": 0.4542,
+            "tp": 109,
+            "fp": 187,
+            "fn": 75,
+            "tn": 8713
+          },
+          {
+            "z": 3.5,
+            "precision": 0.4138,
+            "recall": 0.5217,
+            "f1": 0.4615,
+            "tp": 96,
+            "fp": 136,
+            "fn": 88,
+            "tn": 8764
+          },
+          {
+            "z": 4.0,
+            "precision": 0.4579,
+            "recall": 0.4728,
+            "f1": 0.4652,
+            "tp": 87,
+            "fp": 103,
+            "fn": 97,
+            "tn": 8797
+          }
+        ],
+        "best_f1_threshold": 4.0
+      }
+    },
+    "base_rate": 0.0203,
+    "served": {
+      "variant": "raw",
+      "threshold": 4.0,
+      "note": "threshold chosen on the same data it is scored on (no separate tuning split); treat its F1 as optimistic"
+    },
+    "at_brief_threshold_3": {
+      "z": 3.0,
+      "precision": 0.3682,
+      "recall": 0.5924,
+      "f1": 0.4542,
+      "tp": 109,
+      "fp": 187,
+      "fn": 75,
+      "tn": 8713
+    },
+    "per_category": {
+      "Food & Dining": {
+        "flagged": 39,
+        "tp": 30,
+        "fp": 9,
+        "true_anomalies": 61,
+        "precision": 0.7692,
+        "recall": 0.4918
+      },
+      "Groceries": {
+        "flagged": 27,
+        "tp": 14,
+        "fp": 13,
+        "true_anomalies": 32,
+        "precision": 0.5185,
+        "recall": 0.4375
+      },
+      "Transport": {
+        "flagged": 27,
+        "tp": 15,
+        "fp": 12,
+        "true_anomalies": 31,
+        "precision": 0.5556,
+        "recall": 0.4839
+      },
+      "Shopping": {
+        "flagged": 21,
+        "tp": 9,
+        "fp": 12,
+        "true_anomalies": 19,
+        "precision": 0.4286,
+        "recall": 0.4737
+      },
+      "Bills & Utilities": {
+        "flagged": 27,
+        "tp": 5,
+        "fp": 22,
+        "true_anomalies": 12,
+        "precision": 0.1852,
+        "recall": 0.4167
+      },
+      "Entertainment": {
+        "flagged": 11,
+        "tp": 5,
+        "fp": 6,
+        "true_anomalies": 8,
+        "precision": 0.4545,
+        "recall": 0.625
+      },
+      "Health": {
+        "flagged": 9,
+        "tp": 3,
+        "fp": 6,
+        "true_anomalies": 9,
+        "precision": 0.3333,
+        "recall": 0.3333
+      },
+      "Education": {
+        "flagged": 5,
+        "tp": 2,
+        "fp": 3,
+        "true_anomalies": 2,
+        "precision": 0.4,
+        "recall": 1.0
+      },
+      "Transfers": {
+        "flagged": 16,
+        "tp": 2,
+        "fp": 14,
+        "true_anomalies": 6,
+        "precision": 0.125,
+        "recall": 0.3333
+      },
+      "Miscellaneous": {
+        "flagged": 8,
+        "tp": 2,
+        "fp": 6,
+        "true_anomalies": 4,
+        "precision": 0.25,
+        "recall": 0.5
+      }
+    }
+  },
+  "forecast": {
+    "n_weeks": 104,
+    "holdout_weeks": 8,
+    "calibration_weeks": 16,
+    "holdout_range": [
+      "2026-07-06",
+      "2026-08-24"
+    ],
+    "calibration_range": [
+      "2026-03-16",
+      "2026-06-29"
+    ],
+    "summary": {
+      "naive": {
+        "mean_mae": 6524.75,
+        "mean_mape": 92.37,
+        "categories_won": 1
+      },
+      "seasonal_naive": {
+        "mean_mae": 5559.34,
+        "mean_mape": 101.04,
+        "categories_won": 1
+      },
+      "linear": {
+        "mean_mae": 4251.39,
+        "mean_mape": 74.32,
+        "categories_won": 3
+      },
+      "category_mean": {
+        "mean_mae": 4352.68,
+        "mean_mape": 103.27,
+        "categories_won": 5
+      }
+    },
+    "per_category": {
+      "Food & Dining": {
+        "models": {
+          "naive": {
+            "mae": 2318.72,
+            "mape": 27.23
+          },
+          "seasonal_naive": {
+            "mae": 4686.81,
+            "mape": 51.89
+          },
+          "linear": {
+            "mae": 1993.1,
+            "mape": 23.77
+          },
+          "category_mean": {
+            "mae": 2101.12,
+            "mape": 23.92
+          }
+        },
+        "winner": "linear",
+        "n_mape_weeks": 8,
+        "linear_beats_mean": true,
+        "winner_vs_reference": {
+          "reference": "seasonal_naive",
+          "weeks_won": 7,
+          "of": 8,
+          "robust": true
+        },
+        "interval": {
+          "q10_residual": -3400.94,
+          "q90_residual": 2664.28,
+          "holdout_coverage": 0.75
+        }
+      },
+      "Groceries": {
+        "models": {
+          "naive": {
+            "mae": 5215.42,
+            "mape": 48.25
+          },
+          "seasonal_naive": {
+            "mae": 5123.79,
+            "mape": 49.88
+          },
+          "linear": {
+            "mae": 4171.84,
+            "mape": 41.37
+          },
+          "category_mean": {
+            "mae": 3280.03,
+            "mape": 33.99
+          }
+        },
+        "winner": "category_mean",
+        "n_mape_weeks": 8,
+        "linear_beats_mean": false,
+        "winner_vs_reference": {
+          "reference": "seasonal_naive",
+          "weeks_won": 5,
+          "of": 8,
+          "robust": true
+        },
+        "interval": {
+          "q10_residual": -5035.14,
+          "q90_residual": 5809.62,
+          "holdout_coverage": 0.75
+        }
+      },
+      "Transport": {
+        "models": {
+          "naive": {
+            "mae": 1657.51,
+            "mape": 38.45
+          },
+          "seasonal_naive": {
+            "mae": 3111.86,
+            "mape": 70.87
+          },
+          "linear": {
+            "mae": 1769.18,
+            "mape": 44.12
+          },
+          "category_mean": {
+            "mae": 1424.89,
+            "mape": 37.23
+          }
+        },
+        "winner": "category_mean",
+        "n_mape_weeks": 8,
+        "linear_beats_mean": false,
+        "winner_vs_reference": {
+          "reference": "seasonal_naive",
+          "weeks_won": 7,
+          "of": 8,
+          "robust": true
+        },
+        "interval": {
+          "q10_residual": -1688.85,
+          "q90_residual": 4169.28,
+          "holdout_coverage": 0.75
+        }
+      },
+      "Shopping": {
+        "models": {
+          "naive": {
+            "mae": 10551.6,
+            "mape": 86.61
+          },
+          "seasonal_naive": {
+            "mae": 12650.72,
+            "mape": 134.23
+          },
+          "linear": {
+            "mae": 5311.58,
+            "mape": 39.56
+          },
+          "category_mean": {
+            "mae": 4770.77,
+            "mape": 45.47
+          }
+        },
+        "winner": "category_mean",
+        "n_mape_weeks": 8,
+        "linear_beats_mean": false,
+        "winner_vs_reference": {
+          "reference": "seasonal_naive",
+          "weeks_won": 6,
+          "of": 8,
+          "robust": true
+        },
+        "interval": {
+          "q10_residual": -11260.65,
+          "q90_residual": 18355.14,
+          "holdout_coverage": 0.875
+        }
+      },
+      "Bills & Utilities": {
+        "models": {
+          "naive": {
+            "mae": 11925.51,
+            "mape": 253.61
+          },
+          "seasonal_naive": {
+            "mae": 9553.94,
+            "mape": 235.16
+          },
+          "linear": {
+            "mae": 4961.49,
+            "mape": 146.97
+          },
+          "category_mean": {
+            "mae": 8842.72,
+            "mape": 490.09
+          }
+        },
+        "winner": "linear",
+        "n_mape_weeks": 8,
+        "linear_beats_mean": true,
+        "winner_vs_reference": {
+          "reference": "seasonal_naive",
+          "weeks_won": 6,
+          "of": 8,
+          "robust": true
+        },
+        "interval": {
+          "q10_residual": -8226.77,
+          "q90_residual": 1142.08,
+          "holdout_coverage": 0.75
+        }
+      },
+      "Entertainment": {
+        "models": {
+          "naive": {
+            "mae": 1725.6,
+            "mape": 57.13
+          },
+          "seasonal_naive": {
+            "mae": 2057.49,
+            "mape": 98.95
+          },
+          "linear": {
+            "mae": 1441.3,
+            "mape": 58.53
+          },
+          "category_mean": {
+            "mae": 1099.56,
+            "mape": 43.93
+          }
+        },
+        "winner": "category_mean",
+        "n_mape_weeks": 8,
+        "linear_beats_mean": false,
+        "winner_vs_reference": {
+          "reference": "seasonal_naive",
+          "weeks_won": 6,
+          "of": 8,
+          "robust": true
+        },
+        "interval": {
+          "q10_residual": -1918.83,
+          "q90_residual": 1287.94,
+          "holdout_coverage": 0.875
+        }
+      },
+      "Health": {
+        "models": {
+          "naive": {
+            "mae": 1185.02,
+            "mape": 57.58
+          },
+          "seasonal_naive": {
+            "mae": 1292.53,
+            "mape": 61.2
+          },
+          "linear": {
+            "mae": 1121.48,
+            "mape": 60.05
+          },
+          "category_mean": {
+            "mae": 956.12,
+            "mape": 49.1
+          }
+        },
+        "winner": "category_mean",
+        "n_mape_weeks": 8,
+        "linear_beats_mean": false,
+        "winner_vs_reference": {
+          "reference": "seasonal_naive",
+          "weeks_won": 6,
+          "of": 8,
+          "robust": true
+        },
+        "interval": {
+          "q10_residual": -2258.97,
+          "q90_residual": 1433.48,
+          "holdout_coverage": 0.75
+        }
+      },
+      "Education": {
+        "models": {
+          "naive": {
+            "mae": 2129.46,
+            "mape": 84.23
+          },
+          "seasonal_naive": {
+            "mae": 4645.81,
+            "mape": 192.45
+          },
+          "linear": {
+            "mae": 3162.74,
+            "mape": 185.09
+          },
+          "category_mean": {
+            "mae": 3070.63,
+            "mape": 155.6
+          }
+        },
+        "winner": "naive",
+        "n_mape_weeks": 7,
+        "linear_beats_mean": false,
+        "winner_vs_reference": {
+          "reference": "seasonal_naive",
+          "weeks_won": 6,
+          "of": 8,
+          "robust": true
+        },
+        "interval": {
+          "q10_residual": -5410.47,
+          "q90_residual": 5015.3,
+          "holdout_coverage": 0.875
+        }
+      },
+      "Transfers": {
+        "models": {
+          "naive": {
+            "mae": 22318.98,
+            "mape": 126.23
+          },
+          "seasonal_naive": {
+            "mae": 8617.56,
+            "mape": 28.91
+          },
+          "linear": {
+            "mae": 14945.69,
+            "mape": 75.53
+          },
+          "category_mean": {
+            "mae": 14123.87,
+            "mape": 75.57
+          }
+        },
+        "winner": "seasonal_naive",
+        "n_mape_weeks": 8,
+        "linear_beats_mean": false,
+        "winner_vs_reference": {
+          "reference": "naive",
+          "weeks_won": 8,
+          "of": 8,
+          "robust": true
+        },
+        "interval": {
+          "q10_residual": -18488.71,
+          "q90_residual": 12829.89,
+          "holdout_coverage": 0.875
+        }
+      },
+      "Miscellaneous": {
+        "models": {
+          "naive": {
+            "mae": 6219.66,
+            "mape": 144.39
+          },
+          "seasonal_naive": {
+            "mae": 3852.94,
+            "mape": 86.85
+          },
+          "linear": {
+            "mae": 3635.5,
+            "mape": 68.25
+          },
+          "category_mean": {
+            "mae": 3857.11,
+            "mape": 77.79
+          }
+        },
+        "winner": "linear",
+        "n_mape_weeks": 8,
+        "linear_beats_mean": true,
+        "winner_vs_reference": {
+          "reference": "seasonal_naive",
+          "weeks_won": 4,
+          "of": 8,
+          "robust": false
+        },
+        "interval": {
+          "q10_residual": -5850.77,
+          "q90_residual": 3918.8,
+          "holdout_coverage": 0.75
+        }
+      }
+    },
+    "overall_best_model": "linear",
+    "linear_beats_category_mean_overall": true,
+    "interval_target": 0.8,
+    "interval_coverage_mean": 0.8,
+    "not_robust_winners": [
+      "Miscellaneous"
+    ]
+  },
+  "real_validation": {
+    "status": "SKIPPED",
+    "reason": "data/real_validation.csv not found"
+  }
+}

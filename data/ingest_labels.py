@@ -76,7 +76,12 @@ def main():
     out = pd.concat([uniques, pd.DataFrame(resolved)], ignore_index=True).sort_values("string_id")
     out.to_csv(config.REAL_VALIDATION_CSV, index=False)
 
-    agreement.update({"anchors_resolved_by_majority": len(resolved), "anchors_excluded_3way_tie": len(ties),
+    master = config.DATA_DIR / "to_label.csv"
+    source = pd.read_csv(master)["source"].iloc[0] if master.exists() else "unknown"
+    if source != "real":
+        print(f"WARNING: labelled strings came from source={source!r}, not real statements. "
+              "Results will be marked as such everywhere.")
+    agreement.update({"string_source": source, "anchors_resolved_by_majority": len(resolved), "anchors_excluded_3way_tie": len(ties),
                       "n_real_validation_rows": int(len(out))})
     config.RESULTS_DIR.mkdir(exist_ok=True)
     (config.RESULTS_DIR / "label_agreement.json").write_text(json.dumps(agreement, indent=2))
