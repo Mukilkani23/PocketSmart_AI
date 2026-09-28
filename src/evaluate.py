@@ -281,6 +281,13 @@ def render_blocks(m: dict) -> dict[str, str]:
     weakest = sorted(c["per_class"].items(), key=lambda kv: kv[1]["f1-score"])[:2]
     F.append("- **Weakest classes:** " + ", ".join(f"{k} (F1 {v['f1-score']:.3f})" for k, v in weakest)
              + ". Payments to individuals are ambiguous from the text alone.")
+    curve = c["calibration"]["curve"]
+    gap = sum(b["count"] * (b["accuracy"] - b["mean_confidence"]) for b in curve) / max(1, sum(b["count"] for b in curve))
+    if c["calibration"]["ece"] > 0.05:
+        F.append(f"- **The shipped classifier is {'under' if gap > 0 else 'over'}confident** (ECE {c['calibration']['ece']:.3f}): "
+                 f"on average its accuracy is {abs(gap):.3f} {'above' if gap > 0 else 'below'} its stated confidence. "
+                 "Balanced class weights plus L2 regularisation spread probability across 10 classes. The abstain "
+                 "threshold is picked from *observed* accuracy, not from the raw probability, so it stays valid.")
     lv, rv = a["variants"]["log"]["auc_pr"], a["variants"]["raw"]["auc_pr"]
     if rv > lv:
         F.append(f"- **My log-z hypothesis was wrong.** I expected z on log(amount) to win because amounts are "

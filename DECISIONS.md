@@ -49,7 +49,7 @@ Entries are appended phase by phase, in the order the decisions were made.
 - **McNemar ship rule, correction.** The plan said "p < 0.05 → ship the higher macro-F1". The first run exposed a contradiction: McNemar was significant *in favour of LR* (more discordant wins), yet RF had a macro-F1 higher by 0.001. McNemar tests *error rates*, so a significant result can only be read in the direction the test points. The corrected rule is: p ≥ 0.05 → LR, and p < 0.05 → the model the test favours. I made the change after seeing that run's output, which I'm stating openly. The change only makes the rule consistent with what the test measures; it would have shipped LR on that run as well.
 - **Result: LR ships.** McNemar p = 0.008, with 71 vs 42 discordant wins for LR. RF has the higher macro-F1 (0.760 vs 0.746), because it does better on the small classes, but it makes more errors overall. The two models trade off: RF favours small-class recall, LR favours overall accuracy.
 - **RandomForest uses `class_weight="balanced_subsample"`,** the forest's equivalent of LR's balanced weighting. Without it the comparison would be unfair.
-- **Abstain threshold 0.75:** the lowest threshold whose accuracy on covered rows is ≥ 0.95. It's stored in the model bundle, not written into source code.
+- **Abstain threshold:** the lowest swept threshold whose accuracy on covered rows is ≥ 0.95. It's stored in the model bundle and in metrics.json, not written into source code. *Correction:* the round-0 run (when RF shipped) gave 0.75. For the shipped LR, the current metrics.json gives 0.65. An earlier status message quoted the round-0 figure, and this entry supersedes it.
 
 ## Phase 3: anomaly detection
 
@@ -107,3 +107,18 @@ Entries are appended phase by phase, in the order the decisions were made.
   1. The fallback said "5 transactions look unusual" when there were 7. `/advice` trims the anomaly list to 5 for the LLM, and the count was taken after the trim. It now passes `n_flagged`, the count before trimming.
   2. The fallback used western digit grouping (₹404,791) while the UI used Indian grouping (₹4,04,791). The template now uses Indian grouping, and the number-guard strips commas, so both styles verify.
 - **The README screenshot** was captured with headless Edge at 500 px, the smallest window it allows, which is still large-phone width. After deploy, replace it with a real phone screenshot of the live URL.
+
+## Phase 8: deploy
+
+- **Models are trained inside the Docker build, never committed.** `models/*` stays gitignored, which is a non-negotiable rule. The build runs `data.generate → src.evaluate → src.verify_build`, and the image is reproducible from source. The alternative, committing the joblib files, would put binaries in git and would let the published metrics and the deployed model drift apart silently.
+- **Clean-checkout simulation:** I ran the three build steps from a `git archive HEAD` copy, with no local data and no models. The rebuilt model's sha256 was identical (`1f32b709ffca`), with deltas of 0.0000. Docker isn't installed on the build machine, so this is the closest local proof. Cloud Build's log will show the `BUILD MODEL MATCHES` line.
+- **`.gcloudignore` is explicit.** Without one, gcloud derives it from `.gitignore`, and that's fragile. It excludes `.env`, `.venv`, the real strings and labels, and local data/models (which are rebuilt in the image anyway). **`GEMINI_API_KEY` is set as a Cloud Run env var via `Read-Host`,** so it never appears in git, the image or shell history. Secret Manager would be the production step.
+- **The container runs as a non-root user.** The LLM cache goes to `/tmp` (the only writable path on Cloud Run), and `PORT` comes from Cloud Run.
+- **Resources:** 1 GiB of memory (pandas + sklearn + models is comfortably under that), `--max-instances 3` as a cost cap, and `--min-instances 1` only on demo day, to avoid a cold start on mobile data.
+- **I don't run the deploy.** gcloud isn't installed on the build machine, and a deploy is an outward-facing, billable action. DEPLOY.md has the exact commands.
+
+## Phase 9: docs
+
+- **VIVA.md has 30 Q&As.** Every number is quoted from metrics.json. The three real-data answers have explicit fill-in slots, because those numbers don't exist until the Day-2 ingest.
+- **MODEL_CARD.md** deliberately avoids restating numbers and points to metrics.json, so it can't go stale.
+- **The pre-registration is drafted for Kani to edit, not committed by me.** It's Kani's claim to defend in the viva. It must be committed in its own commit *before* `data/ingest_labels.py` is run on the real labels.

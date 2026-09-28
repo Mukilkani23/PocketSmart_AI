@@ -212,6 +212,7 @@ The synthetic test score shows the *pipeline* works. This section shows whether 
 <!-- METRICS:FINDINGS:START -->
 - **RandomForest has the higher macro-F1 (0.760 vs 0.746) but is not shipped.** McNemar (p = 0.0081) says LR makes significantly fewer errors overall. RF trades overall accuracy for small-class recall.
 - **Weakest classes:** Bills & Utilities (F1 0.628), Miscellaneous (F1 0.654). Payments to individuals are ambiguous from the text alone.
+- **The shipped classifier is underconfident** (ECE 0.160): on average its accuracy is 0.152 above its stated confidence. Balanced class weights plus L2 regularisation spread probability across 10 classes. The abstain threshold is picked from *observed* accuracy, not from the raw probability, so it stays valid.
 - **My log-z hypothesis was wrong.** I expected z on log(amount) to win because amounts are lognormal. Raw-z scored AUC-PR 0.386 against log-z's 0.335. Multiplicative outliers are only a modest shift in log space when a category's spread is wide.
 - **Anomaly precision collapses where a category is multimodal or heavy-tailed:** Transfers 0.125, Bills & Utilities 0.185.
 - **A constant beat the regression in 7 of 10 forecast categories.** Weekly spend in most categories is close to noise around a mean. Lag features let the regression chase last week's noise.
