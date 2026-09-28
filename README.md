@@ -5,6 +5,7 @@ Personal-finance intelligence built on three measured ML components: a merchant-
 
 - **Live:** _pending deploy. The URL goes here after `gcloud run deploy`._
 - **API docs:** `<live-url>/docs` · **Every number, live:** `<live-url>/metrics`
+- **Run it locally:** `.venv\Scripts\python -m uvicorn api.main:app --port 8000`, then open http://localhost:8000 (full instructions in [section 8](#8-setup-and-run))
 
 ![PocketSmart on a phone](docs/screenshot.png)
 
@@ -230,29 +231,66 @@ Structural limitations:
 
 ## 8. Setup and run
 
-Requirements: Python 3.11. All dependencies are pinned in `requirements.txt`.
+All commands below are for **Windows PowerShell**, run from the project folder (`PocketAI`). Requirements: Python 3.11. Every dependency is pinned in `requirements.txt`.
 
-```bash
-python -m venv .venv
-.venv/Scripts/python -m pip install -r requirements.txt   # Windows; use .venv/bin/python on Linux/macOS
-cp .env.example .env                                      # add GEMINI_API_KEY (optional; there is a fallback)
+### ▶ Run the app (any time)
 
-python -m data.generate              # synthetic data  -> data/transactions.csv
-python -m src.evaluate --report      # train everything, write results/metrics.json, plots, README tables
-python -m src.verify_build           # check the models reproduce metrics.json
-uvicorn api.main:app --reload        # http://localhost:8000  (frontend at /, docs at /docs)
-python -m pytest tests -q            # smoke tests
+```powershell
+cd C:\Users\kanim\OneDrive\Desktop\PocketAI
+.venv\Scripts\python -m uvicorn api.main:app --port 8000
 ```
 
-Real validation set (optional; the pipeline skips it cleanly without it):
+Then open **http://localhost:8000** (the app) or **http://localhost:8000/docs** (the API). Press `Ctrl + C` to stop.
 
-```bash
-python -m data.labelling_sheet       # needs data/real_strings_raw.txt -> to_label_a/b/c.csv
-# labellers return data/labels_a.csv, labels_b.csv, labels_c.csv
-python -m data.ingest_labels         # -> data/real_validation.csv, Fleiss' kappa
-python -m src.evaluate --report      # README section 5 fills in
+To open it **on your phone** over the same Wi-Fi or hotspot, run this instead, then visit `http://<your-laptop-IP>:8000`. Your laptop's IP is the "IPv4 Address" line in the output of `ipconfig`.
+
+```powershell
+.venv\Scripts\python -m uvicorn api.main:app --host 0.0.0.0 --port 8000
 ```
 
-Deploy (Cloud Run, asia-south1): see [DEPLOY.md](DEPLOY.md).
+### First-time setup (only once, or after a fresh `git clone`)
+
+The data and models are not stored in git, so they have to be built once:
+
+```powershell
+py -3.11 -m venv .venv                                  # create the virtual environment
+.venv\Scripts\python -m pip install -r requirements.txt # install pinned dependencies
+copy .env.example .env                                  # then put your GEMINI_API_KEY in .env (optional: there's an offline fallback)
+.venv\Scripts\python -m data.generate                   # synthetic data   -> data\transactions.csv
+.venv\Scripts\python -m src.evaluate --report           # train all models -> models\, results\metrics.json, README tables
+```
+
+After this, the "Run the app" command above is all you need.
+
+### Other useful commands
+
+| What | Command |
+|---|---|
+| Re-train everything and refresh every number (metrics.json, plots, README tables) | `.venv\Scripts\python -m src.evaluate --report` |
+| Check the models reproduce the committed metrics | `.venv\Scripts\python -m src.verify_build` |
+| Run the smoke tests | `.venv\Scripts\python -m pytest tests -q` |
+| Try the Gemini narration from the terminal | `.venv\Scripts\python -m src.gemini --demo` |
+| Test the offline fallback (no network needed) | `$env:GEMINI_FORCE_FAIL="1"; .venv\Scripts\python -m src.gemini --demo; $env:GEMINI_FORCE_FAIL="0"` |
+| List the Gemini models your key can use | `.venv\Scripts\python -m src.gemini --list-models` |
+
+### Real validation set (optional; the pipeline skips it cleanly without it)
+
+```powershell
+.venv\Scripts\python -m data.labelling_sheet   # needs data\real_strings_raw.txt -> to_label_a/b/c.csv
+# the labellers return data\labels_a.csv, labels_b.csv, labels_c.csv
+.venv\Scripts\python -m data.ingest_labels     # -> data\real_validation.csv + Fleiss' kappa
+.venv\Scripts\python -m src.evaluate --report  # fills in README section 5
+```
+
+### Troubleshooting
+
+- **`DLL load failed ... Application Control policy has blocked this file`**: Windows Smart App Control is checking a library file. Run the same command again; it usually passes on the second try.
+- **`address already in use` / port 8000 busy**: another server is still running. Close it, or use `--port 8001` and open http://localhost:8001.
+- **`FileNotFoundError: models\classifier.joblib`**: the models haven't been built yet. Run the two last commands of *First-time setup*.
+- **Advice shows "offline template"**: there's no `GEMINI_API_KEY` in `.env`, or no network. Everything else still works.
+
+### Deploy
+
+Cloud Run, asia-south1: see [DEPLOY.md](DEPLOY.md).
 
 More detail: [DECISIONS.md](DECISIONS.md) records every judgement call · [VIVA.md](VIVA.md) has the questions and answers · [MODEL_CARD.md](MODEL_CARD.md) is the model card.
