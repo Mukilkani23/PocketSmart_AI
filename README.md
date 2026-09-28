@@ -222,6 +222,7 @@ Structural limitations:
 - **Synthetic training data.** The generator encodes my assumptions about Indian statements. The real-data section measures how wrong those assumptions are, and it doesn't fix them.
 - **Text-only classifier.** Amount, time and merchant history aren't used. A small morning payment to a person and the monthly rent paid to the same person look identical to it.
 - **One z-score per category** assumes a single typical amount. Categories that mix very different payments (rent and a phone recharge are both "Bills") break that assumption.
+- **The 28-day anomaly window is shorter than a monthly billing cycle.** Last month's bill has always left the window by the time this month's arrives, so recurring monthly bills are systematically flagged. A window of 35 days or more, or a per-merchant baseline, would fix it. It was left as specified and is reported here.
 - **Short holdouts.** Eight forecast weeks means coverage and "weeks won" move in coarse steps, so treat per-category differences as indicative.
 - **Selection on the evaluation set.** The per-category forecast winner and the anomaly threshold are picked on the same data they're reported on, so those two figures are slightly optimistic. This is stated in `metrics.json`.
 - **Single user, no auth, no database**, by design (see [DECISIONS.md](DECISIONS.md)).
