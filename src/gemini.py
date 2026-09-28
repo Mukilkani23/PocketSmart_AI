@@ -131,7 +131,12 @@ def invented_numbers(text: str, payload) -> list[str]:
 
 # --------------------------------------------------------------------------- fallback
 def _inr(x) -> str:
-    return f"₹{float(x):,.0f}"
+    """Indian digit grouping, e.g. ₹4,04,791 (matches the frontend's en-IN formatting)."""
+    n = str(abs(int(round(float(x)))))
+    head, tail = n[:-3], n[-3:]
+    while len(head) > 2:
+        tail, head = head[-2:] + "," + tail, head[:-2]
+    return ("-" if float(x) < 0 else "") + "₹" + (head + "," + tail if head else tail)
 
 
 def fallback_text(payload: dict) -> str:
@@ -154,10 +159,11 @@ def fallback_text(payload: dict) -> str:
             parts.append(f"The {f.get('model_used')} model expects about {_inr(f.get('prediction', 0))} on "
                          f"{f.get('category')} next week (range {_inr(f.get('lower_80', 0))}–{_inr(f.get('upper_80', 0))}; "
                          f"typically off by {_inr(f.get('holdout_mae', 0))}).")
-        an = (payload.get("anomalies") or {}).get("items") or []
+        anp = payload.get("anomalies") or {}
+        an = anp.get("items") or []
         if an:
             a = max(an, key=lambda x: x.get("z_score", 0))
-            parts.append(f"{len(an)} transaction(s) look unusual; the largest is {_inr(a.get('amount', 0))} on "
+            parts.append(f"{anp.get('n_flagged', len(an))} transaction(s) look unusual; the largest is {_inr(a.get('amount', 0))} on "
                          f"{a.get('category')} ({a.get('date')}), {a.get('z_score', 0):.1f} standard deviations above normal.")
         unc = [c for c in (payload.get("categorization") or []) if c.get("uncertain")]
         if unc:

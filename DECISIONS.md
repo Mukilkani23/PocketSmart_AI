@@ -94,3 +94,16 @@ Entries are appended phase by phase, in the order the decisions were made.
 - **Anomaly `reason` strings use the detector's own baseline:** the arithmetic mean for raw-z and the geometric mean for log-z, so the sentence matches the z-score it explains.
 - **Latency middleware** keys on the route *template* (`GET /forecast`, not every query string), keeps up to 10,000 samples per route in memory, and excludes /docs and static files.
 - **FINDING: the 28-day anomaly window is shorter than the monthly billing cycle.** A bill paid between the 1st and the 5th is compared against a 28-day window that almost never contains last month's bill, so every credit-card, rent or broadband payment looks like a spike against a month of small recharges. That's a systematic false-positive source, and it explains the low Bills & Utilities precision. The fix would be a window of 35 days or more, or a per-merchant baseline. **I did not change it:** the brief fixes the window at 28 days, and changing it after seeing the results would be tuning to the evaluation. It is documented as a limitation.
+
+## Phase 7: frontend
+
+- **Vanilla HTML/CSS/JS with no build step, served by FastAPI `StaticFiles` at `/`.** API routes are registered first, so they take precedence. `/docs` stays available.
+- **Mobile-first.** A single column, 44 px touch targets, a sticky section nav, and no horizontal scroll at 375 px (verified in the browser pane). Dark mode follows the phone's setting.
+- **The live "Try a merchant string" box is the hero.** It sits first on the page, with six one-tap examples covering each string format. It shows the category, confidence, the `UNCERTAIN` badge below the abstain threshold, the top-3 probability bars, and the normalised string the model actually saw (digits masked). That last one is useful in the viva, because it makes the preprocessing visible.
+- **Chart.js loads from the jsdelivr CDN with `defer`. Every chart has a table next to it,** and `no-chart` hides the empty canvases if the CDN fails on mobile data. Nothing depends on Chart.js.
+- **The Advice button** shows a spinner and a client-side 20 s abort. The response is labelled with its source (Gemini / cached / offline template) and the fallback reason, so the examiner can see which path ran. The error message says that "the numbers above are still valid", because the ML results don't depend on the LLM.
+- **All user-visible strings are HTML-escaped (`esc()`),** because merchant strings are user input.
+- **Two bugs found while testing, both fixed:**
+  1. The fallback said "5 transactions look unusual" when there were 7. `/advice` trims the anomaly list to 5 for the LLM, and the count was taken after the trim. It now passes `n_flagged`, the count before trimming.
+  2. The fallback used western digit grouping (₹404,791) while the UI used Indian grouping (₹4,04,791). The template now uses Indian grouping, and the number-guard strips commas, so both styles verify.
+- **The README screenshot** was captured with headless Edge at 500 px, the smallest window it allows, which is still large-phone width. After deploy, replace it with a real phone screenshot of the live URL.

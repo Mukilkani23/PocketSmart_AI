@@ -160,6 +160,7 @@ def advice(req: AdviceRequest):
             payload["forecast"] = [f.model_dump(exclude={"history_weeks", "history_actual"}) for f in req.forecast]
         if req.anomalies:
             a = req.anomalies.model_dump()
+            a["n_flagged"] = len(a["items"])  # true count, before trimming the list sent to the LLM
             a["items"] = a["items"][:5]
             payload["anomalies"] = a
         if req.categorization:

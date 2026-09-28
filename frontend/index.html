@@ -1,1 +1,87 @@
-<!doctype html><title>PocketSmart</title>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>PocketSmart AI</title>
+  <meta name="description" content="Personal-finance intelligence: ML computes, Gemini narrates.">
+  <meta name="theme-color" content="#0f766e">
+  <link rel="stylesheet" href="style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <header class="top">
+    <div class="brand">Pocket<b>Smart</b> AI</div>
+    <span class="pill" id="asof">loading…</span>
+  </header>
+
+  <main>
+    <!-- The single best demo interaction: live categorisation -->
+    <section class="card hero" aria-labelledby="try-h">
+      <h1 id="try-h">Try a merchant string</h1>
+      <p class="muted">Paste any messy bank-statement line. The ML classifier categorises it live.</p>
+      <form id="try-form" autocomplete="off">
+        <input id="try-input" type="text" inputmode="text" maxlength="300"
+               placeholder="e.g. UPI/98765/SWIGGY/YESB0001" aria-label="Merchant string">
+        <button type="submit" id="try-btn">Categorise</button>
+      </form>
+      <div class="chips" id="chips" aria-label="Examples"></div>
+      <div id="try-out" class="try-out" aria-live="polite"></div>
+    </section>
+
+    <nav class="tabs" aria-label="Sections">
+      <a href="#overview">Overview</a><a href="#categories">Categories</a><a href="#forecast">Forecast</a><a href="#advice">Advice</a>
+    </nav>
+
+    <section id="overview" class="card">
+      <div class="sec-head">
+        <h2>Overview</h2>
+        <select id="month" aria-label="Month"></select>
+      </div>
+      <div class="stats">
+        <div class="stat"><span class="label">Total spend</span><span class="value" id="st-total">–</span></div>
+        <div class="stat"><span class="label">Top category</span><span class="value" id="st-top">–</span></div>
+        <div class="stat"><span class="label">vs last month</span><span class="value" id="st-mom">–</span></div>
+      </div>
+      <h3>This month vs last, by category</h3>
+      <div class="chart-box"><canvas id="ch-mom" aria-label="This month vs last month bar chart"></canvas></div>
+      <h3>Unusual transactions <small class="muted">(last 30 days, rolling z-score)</small></h3>
+      <ul id="anoms" class="anoms"></ul>
+    </section>
+
+    <section id="categories" class="card">
+      <h2>Categories</h2>
+      <div class="split">
+        <div class="chart-box doughnut"><canvas id="ch-share" aria-label="Spend share doughnut"></canvas></div>
+        <div class="table-wrap"><table id="cat-table"><thead><tr><th>Category</th><th class="r">Spend</th><th class="r">Share</th><th class="r">MoM</th></tr></thead><tbody></tbody></table></div>
+      </div>
+    </section>
+
+    <section id="forecast" class="card">
+      <div class="sec-head">
+        <h2>Next-week forecast</h2>
+        <select id="fc-cat" aria-label="Forecast category"></select>
+      </div>
+      <div id="fc-card" class="fc-card"></div>
+      <div class="chart-box"><canvas id="ch-fc" aria-label="Weekly spend history and forecast"></canvas></div>
+      <details>
+        <summary>All categories</summary>
+        <div class="table-wrap"><table id="fc-table"><thead><tr><th>Category</th><th class="r">Next week</th><th class="r">80% range</th><th>Model</th><th class="r">Holdout MAE</th></tr></thead><tbody></tbody></table></div>
+      </details>
+    </section>
+
+    <section id="advice" class="card">
+      <h2>Advice</h2>
+      <p class="muted">Gemini turns the numbers above into plain English. It is not allowed to compute or predict anything itself.</p>
+      <button id="advice-btn" class="wide">Explain my month</button>
+      <div id="advice-out" class="advice-out" aria-live="polite"></div>
+    </section>
+  </main>
+
+  <footer>
+    <p><b>Synthetic demo data.</b> Models compute; the LLM only narrates.</p>
+    <p><a href="/metrics">/metrics</a> · <a href="/docs">API docs</a> · <a href="/health">/health</a> · <a href="/metrics/latency">latency</a></p>
+  </footer>
+</body>
+</html>
