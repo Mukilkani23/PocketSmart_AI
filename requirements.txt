@@ -2,7 +2,7 @@
 # src/verify_build.py asserts they match results/metrics.json.
 numpy==2.4.6
 pandas==3.0.6
-scikit-learn==1.9.1
+scikit-learn==1.7.2
 scipy==1.17.1
 joblib==1.6.0
 matplotlib==3.11.2

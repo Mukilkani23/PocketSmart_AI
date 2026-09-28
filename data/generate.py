@@ -32,11 +32,11 @@ from src import config  # noqa: E402
 # Every change is logged in DECISIONS.md with the accuracy it produced.
 # --------------------------------------------------------------------------
 PERSON_SHARE = {  # fraction of a category's txns paid to an individual (shared name pool)
-    "Food & Dining": 0.10, "Groceries": 0.20, "Transport": 0.20, "Shopping": 0.05,
-    "Bills & Utilities": 0.08, "Entertainment": 0.03, "Health": 0.12,
-    "Education": 0.20, "Transfers": 0.85, "Miscellaneous": 0.25,
+    "Food & Dining": 0.05, "Groceries": 0.10, "Transport": 0.10, "Shopping": 0.03,
+    "Bills & Utilities": 0.04, "Entertainment": 0.02, "Health": 0.06,
+    "Education": 0.10, "Transfers": 0.85, "Miscellaneous": 0.12,
 }
-TRUNCATE_P = 0.25       # probability a string is cut to 18-32 chars
+TRUNCATE_P = 0.20       # probability a string is cut to 18-32 chars
 ANOMALY_RATE = 0.02
 
 # Shared platforms: (aliases) — reused across categories below.

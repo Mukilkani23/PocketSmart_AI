@@ -35,3 +35,36 @@ Entries are appended phase by phase, in the order the decisions were made.
 - **Anchor 3-way ties are excluded, not guessed.** When there's no majority there is no ground truth. Each tie is logged here automatically.
 - **Raw percent agreement is reported alongside Fleiss' κ.** κ is chance-corrected, so it's on a different scale from accuracy. The model-vs-human comparison uses mean pairwise agreement, which *is* on the accuracy scale.
 - **If there's no real-strings file, the sheet is built from held-out synthetic strings, with a loud warning.** That lets the ingest → validate pipeline be tested end to end before the real labels exist.
+
+## Phase 2: classifier
+
+- **scikit-learn is pinned to 1.7.2, not 1.9.1.** Windows Smart App Control permanently blocked one compiled file in 1.9.1 (`_argkmin_classmode`). I did not change the security setting. I switched to the widely deployed 1.7.2 release, whose files passed the check. The pin covers both the local venv and the Docker image, so they stay identical.
+- **Split: time-based, with the last 20% of rows by date as test** (cutoff 2026-04-05). Whole days never straddle the cutoff. A random split would let the model train on the future.
+- **The TF-IDF vectorizer lives inside a sklearn `Pipeline`,** so `fit` only ever sees training strings. The test set's vocabulary and IDF values can't leak into training.
+- **Generator tuning, round 1 (the gate fired BELOW the band).**
+  - Round 0: LR accuracy 0.729 (below 0.78), so the generator was too noisy.
+  - The change: `PERSON_SHARE` halved for every category except Transfers (e.g. Groceries 0.20 → 0.10), and `TRUNCATE_P` lowered from 0.25 to 0.20.
+  - Round 1: LR accuracy **0.793** [0.774, 0.811], inside the band. **I stopped after one round.** I did not keep tuning toward a "nicer" number. The CI still crosses 0.78, and that is reported as is.
+  - The model's hyperparameters were never touched.
+- **McNemar ship rule, correction.** The plan said "p < 0.05 → ship the higher macro-F1". The first run exposed a contradiction: McNemar was significant *in favour of LR* (more discordant wins), yet RF had a macro-F1 higher by 0.001. McNemar tests *error rates*, so a significant result can only be read in the direction the test points. The corrected rule is: p ≥ 0.05 → LR, and p < 0.05 → the model the test favours. I made the change after seeing that run's output, which I'm stating openly. The change only makes the rule consistent with what the test measures; it would have shipped LR on that run as well.
+- **Result: LR ships.** McNemar p = 0.008, with 71 vs 42 discordant wins for LR. RF has the higher macro-F1 (0.760 vs 0.746), because it does better on the small classes, but it makes more errors overall. The two models trade off: RF favours small-class recall, LR favours overall accuracy.
+- **RandomForest uses `class_weight="balanced_subsample"`,** the forest's equivalent of LR's balanced weighting. Without it the comparison would be unfair.
+- **Abstain threshold 0.75:** the lowest threshold whose accuracy on covered rows is ≥ 0.95. It's stored in the model bundle, not written into source code.
+
+## Phase 3: anomaly detection
+
+- **The window is the previous 28 days (`closed="left"`), so the current day is excluded.** Otherwise a large spike raises its own mean and standard deviation and partly hides itself.
+- **`MIN_HISTORY = 5`.** A standard deviation from fewer than 5 points is meaningless, so those rows get no z-score and aren't evaluated. The first 28 days are warm-up and are also excluded.
+- **My hypothesis was wrong, and I'm reporting it as is.** I expected log-z to beat raw-z, because amounts are lognormal. The data says raw-z does better: AUC-PR 0.386 vs 0.335. The reason: the injected anomalies multiply the amount by 4–10×. In log space that's a shift of only 1.4–2.3, which is just 1.5–3.8 σ in high-variance categories, while on the raw scale the jump is enormous. **The served detector follows the pre-coded rule (highest AUC-PR): raw-z.**
+- **The served threshold is best-F1 from the sweep, |z| > 4.0.** It's chosen on the same data it's scored on, because there's no separate tuning split for a single scalar, so that F1 is optimistic. This is stated in `metrics.json`. F1 is still rising at 4.0, the edge of the sweep. I did *not* extend the sweep to chase a higher score.
+- **Per-category precision reveals the failure modes.** Bills & Utilities (0.19) is multimodal (rent ₹14k and a mobile recharge ₹599 share one mean and SD). Transfers (0.13) is extremely heavy-tailed. A single z-score per category assumes a unimodal distribution, and that assumption breaks here.
+
+## Phase 4: forecasting
+
+- **Weeks run Monday to Sunday, and only complete weeks are used** (104). The partial first and last weeks would look like fake drops in spend.
+- **Week-of-month is taken from the week's Thursday.** A week belongs to the month most of its days fall in (the ISO convention). It's one-hot encoded, because it's a category, not a quantity.
+- **Evaluation is one-step-ahead walk-forward, with no refit on holdout data.** Every model predicts week t from actual weeks < t. That's the fair setup for the naive baselines, which also use the last actual value.
+- **The 80% interval is calibrated on a separate 16-week window immediately before the holdout.** Calibrating on the holdout itself would make 80% coverage true by construction. The result was mean coverage 0.800, which is genuine here. Note the granularity: with 8 holdout weeks, per-category coverage can only move in steps of 0.125.
+- **MAPE is computed only on weeks with non-zero actuals,** because MAPE is undefined when actual = 0. The count of weeks used is stored per category.
+- **Serving: each category serves its holdout-MAE winner.** Where the winner is linear, it's refit on all 104 weeks for the live prediction, and the interval quantiles are reused from calibration.
+- **Result.** Linear regression has the lowest *mean* MAE, but **category_mean is the per-category winner in 5 of 10 categories**. For most categories, weekly spend is close to i.i.d. noise around a mean, so a constant beats models that chase last week's noise. Miscellaneous is flagged NOT ROBUST: its winner beat the reference in only 4 of 8 weeks.
