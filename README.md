@@ -5,6 +5,7 @@ Personal-finance intelligence built on three measured ML components: a merchant-
 
 - **Live:** _pending deploy. The URL goes here after `gcloud run deploy`._
 - **API docs:** `<live-url>/docs` · **Every number, live:** `<live-url>/metrics`
+- **New here?** Read the [Complete Project Guide](PROJECT_GUIDE.md): what it's for, how to use it, and everything happening behind the scenes.
 - **Run it locally:** `.venv\Scripts\python -m uvicorn api.main:app --port 8000`, then open http://localhost:8000 (full instructions in [section 8](#8-setup-and-run))
 
 ![PocketSmart on a phone](docs/screenshot.png)
@@ -293,4 +294,4 @@ After this, the "Run the app" command above is all you need.
 
 Cloud Run, asia-south1: see [DEPLOY.md](DEPLOY.md).
 
-More detail: [DECISIONS.md](DECISIONS.md) records every judgement call · [VIVA.md](VIVA.md) has the questions and answers · [MODEL_CARD.md](MODEL_CARD.md) is the model card.
+More detail: [PROJECT_GUIDE.md](PROJECT_GUIDE.md) is the complete guide · [DECISIONS.md](DECISIONS.md) records every judgement call · [VIVA.md](VIVA.md) has the questions and answers · [MODEL_CARD.md](MODEL_CARD.md) is the model card.

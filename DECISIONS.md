@@ -98,7 +98,7 @@ Entries are appended phase by phase, in the order the decisions were made.
 ## Phase 7: frontend
 
 - **Vanilla HTML/CSS/JS with no build step, served by FastAPI `StaticFiles` at `/`.** API routes are registered first, so they take precedence. `/docs` stays available.
-- **Mobile-first.** A single column, 44 px touch targets, a sticky section nav, and no horizontal scroll at 375 px (verified in the browser pane). Dark mode follows the phone's setting.
+- **Mobile-first.** A single column, 44 px touch targets, a sticky section nav, and no horizontal scroll at 375 px (verified in the browser pane). The theme is always light (see the Phase 10 entry).
 - **The live "Try a merchant string" box is the hero.** It sits first on the page, with six one-tap examples covering each string format. It shows the category, confidence, the `UNCERTAIN` badge below the abstain threshold, the top-3 probability bars, and the normalised string the model actually saw (digits masked). That last one is useful in the viva, because it makes the preprocessing visible.
 - **Chart.js loads from the jsdelivr CDN with `defer`. Every chart has a table next to it,** and `no-chart` hides the empty canvases if the CDN fails on mobile data. Nothing depends on Chart.js.
 - **The Advice button** shows a spinner and a client-side 20 s abort. The response is labelled with its source (Gemini / cached / offline template) and the fallback reason, so the examiner can see which path ran. The error message says that "the numbers above are still valid", because the ML results don't depend on the LLM.
@@ -122,3 +122,8 @@ Entries are appended phase by phase, in the order the decisions were made.
 - **VIVA.md has 30 Q&As.** Every number is quoted from metrics.json. The three real-data answers have explicit fill-in slots, because those numbers don't exist until the Day-2 ingest.
 - **MODEL_CARD.md** deliberately avoids restating numbers and points to metrics.json, so it can't go stale.
 - **The pre-registration is drafted for Kani to edit, not committed by me.** It's Kani's claim to defend in the viva. It must be committed in its own commit *before* `data/ingest_labels.py` is run on the real labels.
+
+## Phase 10: light theme and project guide
+
+- **The frontend is always light-themed,** at the owner's request. The `prefers-color-scheme: dark` override was removed, and `color-scheme: light` (in CSS and a meta tag) makes the browser draw form controls light even when the phone is in dark mode. I verified this in the browser pane with dark mode emulated: background `#f4f6f5`, white cards, dark text. The README screenshot was retaken.
+- **PROJECT_GUIDE.md** is the single long-form explanation: uses, how to use it, the pipeline and request flows (Mermaid diagrams), every file, configuration, commands, troubleshooting, and a glossary. Its results table is labelled as a snapshot of metrics.json, because the README rule (numbers only rendered from metrics.json) applies to the README.
