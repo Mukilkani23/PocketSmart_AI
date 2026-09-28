@@ -1,0 +1,25 @@
+# Never ship secrets, the local env, or private data
+.env
+.venv/
+.git/
+.claude/
+cache/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Private: real statement strings and human labels
+data/*.txt
+data/to_label*
+data/labels_*
+data/real_validation.csv
+
+# Rebuilt inside the image (see Dockerfile), so local copies must not leak in
+data/*.csv
+models/*.joblib
+models/build_verification.json
+results/*.png
+
+# Not needed at runtime
+tests/
+docs/
